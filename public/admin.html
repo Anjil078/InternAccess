@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InternAccess Admin Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6fb;
+      margin: 0;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 750px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px #00000012;
+    }
+
+    h1 {
+      text-align: center;
+      color: #243b68;
+    }
+
+    input, textarea {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin: 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 100px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .internship {
+      padding: 15px;
+      margin-top: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>InternAccess Admin Dashboard</h1>
+
+    <section id="loginSection">
+      <h2>Admin Login</h2>
+
+      <form id="loginForm">
+        <input id="username" placeholder="Username" required>
+        <input id="password" type="password"
+               placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+    </section>
+
+    <section id="dashboard" hidden>
+      <button id="logoutBtn">Logout</button>
+
+      <h2>Add New Internship</h2>
+
+      <form id="internshipForm">
+        <input id="title" placeholder="Internship Title" required>
+        <input id="company" placeholder="Company Name" required>
+        <input id="location" placeholder="Location" required>
+        <input id="stipend" placeholder="Stipend">
+
+        <textarea id="description"
+          placeholder="Internship Description"></textarea>
+
+        <input id="applyLink" type="url"
+          placeholder="Application Link" required>
+
+        <button type="submit">Add Internship</button>
+      </form>
+
+      <h2>Manage Internships</h2>
+      <div id="internshipList"></div>
+    </section>
+
+    <p id="message" role="status"></p>
+  </div>
+
+  <script>
+    const loginSection = document.getElementById("loginSection");
+    const dashboard = document.getElementById("dashboard");
+    const message = document.getElementById("message");
+
+    function showDashboard(loggedIn) {
+      loginSection.hidden = loggedIn;
+      dashboard.hidden = !loggedIn;
+    }
+
+    async function request(url, options = {}) {
+      const response = await fetch(url, options);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Request failed");
+      }
+
+      return data;
+    }
+
+    document.getElementById("loginForm").onsubmit = async (e) => {
+      e.preventDefault();
+
+      try {
+        await request("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value
+          })
+        });
+
+        showDashboard(true);
+        message.textContent = "Login successful!";
+        loadInternships();
+      } catch (err) {
+        message.textContent = err.message;
+      }
+    };
+
+    document.getElementById("internshipForm").onsubmit = async (e) => {
+      e.preventDefault();
+
+      const fields = [
+        "title", "company", "location",
+        "stipend", "description", "applyLink"
+      ];
+
+      const internship = {};
+
+      fields.forEach(field => {
+        internship[field] = document.getElementById(field).value;
+      });
+
+      try {
+        await request("/api/internships", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(internship)
+        });
+
+        message.textContent = "Internship added successfully!";
+        e.target.reset();
+        loadInternships();
+      } catch (err) {
+        message.textContent = err.message;
+      }
+    };
+
+    async function loadInternships() {
+      try {
+        const internships = await request("/api/internships");
+        const list = document.getElementById("internshipList");
+        list.replaceChildren();
+
+        internships.forEach(job => {
+          const item = document.createElement("div");
+          item.className = "internship";
+
+          const title = document.createElement("h3");
+          title.textContent = `${job.title} - ${job.company}`;
+
+          const location = document.createElement("p");
+          location.textContent = job.location;
+
+          const deleteButton = document.createElement("button");
+          deleteButton.textContent = "Delete";
+
+          deleteButton.onclick = async () => {
+            if (!confirm("Delete this internship?")) return;
+
+            try {
+              await request(`/api/internships/${job.id}`, {
+                method: "DELETE"
+              });
+              loadInternships();
+            } catch (err) {
+              message.textContent = err.message;
+            }
+          };
+
+          item.append(title, location, deleteButton);
+          list.appendChild(item);
+        });
+      } catch (err) {
+        message.textContent = err.message;
+      }
+    }
+
+    document.getElementById("logoutBtn").onclick = async () => {
+      try {
+        await request("/api/admin/logout", { method: "POST" });
+        showDashboard(false);
+        message.textContent = "Logged out";
+      } catch (err) {
+        message.textContent = err.message;
+      }
+    };
+
+    async function initialize() {
+      try {
+        const status = await request("/api/admin/status");
+        showDashboard(status.loggedIn);
+
+        if (status.loggedIn) loadInternships();
+      } catch {
+        message.textContent = "Unable to check login status";
+      }
+    }
+
+    initialize();
+  </script>
+</body>
+</html>

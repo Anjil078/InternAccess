@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InternAccess</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <span class="badge">College project • Demo portal</span>
+      <h1>InternAccess</h1>
+      <p>Find an internship that fits your skills, budget and location.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="filters" aria-label="Filter internships">
+      <div>
+        <label for="payFilter">Payment</label>
+        <select id="payFilter">
+          <option value="all">All payment types</option>
+          <option value="paid">Paid</option>
+          <option value="unpaid">Unpaid</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="modeFilter">Work arrangement</label>
+        <select id="modeFilter">
+          <option value="all">All arrangements</option>
+          <option value="remote">Remote</option>
+          <option value="local">Local — Chandigarh / Mohali</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="skillFilter">Skill</label>
+        <select id="skillFilter">
+          <option value="all">All skills</option>
+        </select>
+      </div>
+
+      <button id="resetButton" class="secondary" type="button">
+        Reset filters
+      </button>
+    </section>
+
+    <p class="notice">
+      Demo only: these fictional opportunities are for testing.
+      “Local” means Chandigarh or Mohali in this prototype.
+    </p>
+
+    <h2>Explore internships</h2>
+    <p id="resultCount" role="status"></p>
+
+    <div id="internshipList" class="cards"></div>
+
+    <p id="emptyMessage" class="empty" hidden>
+      No matching internships. Try changing your filters.
+    </p>
+  </main>
+
+  <dialog id="detailsDialog" aria-labelledby="detailsTitle">
+    <div class="dialog-header">
+      <span class="badge">Demo internship</span>
+      <button id="closeDialog" class="secondary" type="button">
+        Close
+      </button>
+    </div>
+
+    <h2 id="detailsTitle"></h2>
+    <p id="detailsCompany" class="muted"></p>
+    <dl id="detailsFacts"></dl>
+
+    <h3>What you will do</h3>
+    <p id="detailsDescription"></p>
+
+    <h3>Skills</h3>
+    <div id="detailsSkills" class="tags"></div>
+
+    <p class="notice">This is a fictional listing. Applications are unavailable.</p>
+  </dialog>
+
+  <footer>InternAccess • Making opportunities easier to explore</footer>
+</body>
+</html>

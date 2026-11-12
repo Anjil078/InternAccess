@@ -1,0 +1,6 @@
+node_modules/
+.env
+internships.db
+internships.db-journal
+internships.db-shm
+internships.db-wal
